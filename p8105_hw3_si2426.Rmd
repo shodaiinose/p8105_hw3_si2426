@@ -54,15 +54,24 @@ accel_hour_df = accel_df %>%
   group_by(hour, day, day_id) %>% 
   summarize(hourly_total = sum(activity_counts)) %>% arrange(day_id)
 
-ggplot(accel_hour_df, aes(x = hour, y = hourly_total)) + 
+accel_hour_plot = ggplot(accel_hour_df, aes(x = hour, y = hourly_total)) + 
   geom_point(aes(color = day)) +
   geom_smooth(se = FALSE) +  labs(
-    title = "Activity Over the Course of the Day",
+    title = "Activity Over the Course of the Day (Hours)",
     x = "Hour (military time)",
     y = "Activity")
+
+accel_min_plot = ggplot(accel_df, aes(x = minute, y = activity_counts)) + 
+  geom_point(aes(color = day)) +
+  geom_smooth(se = FALSE) +  labs(
+    title = "Activity Over the Course of the Day (Minutes)",
+    x = "Minute",
+    y = "Activity")
+
+accel_min_plot + accel_hour_plot
 ```
 
-#FIX THIS Overall, it appears that the individual...
+# WRITE SUMMARY
 
 ## Problem 3
 
@@ -91,7 +100,11 @@ ggplot(ny_noaa_df_jan_jul, aes(x = year, y = (mean_tmax))) +
   geom_smooth(se = FALSE) + 
   facet_grid(. ~month)
 ```
+# WRITE SUMMARY
 
+
+
+#### Tmax vs. Tmin and Snowfall Distribution Plot
 ```{r}
 tmax_v_tmin = ggplot(ny_noaa_df, aes(x = tmin, y = tmax)) + 
   geom_hex()
@@ -105,7 +118,7 @@ noaa_density = ny_noaa_df %>%
 
 tmax_v_tmin + noaa_density
 ```
-
+# WRITE SUMMARY
 
 
 
