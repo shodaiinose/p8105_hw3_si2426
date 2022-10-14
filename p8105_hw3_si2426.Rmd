@@ -18,41 +18,41 @@ library(patchwork)
 
 #### Loading and Cleaning Data
 ```{r, message = FALSE}
-accel_df = read_csv("./data/accel_data.csv") %>% janitor::clean_names() %>% pivot_longer(-c(week, day_id, day), names_to = "minute", values_to = "activity_counts") %>% mutate(minute = as.integer(gsub('[activity_]', '', minute))) %>% mutate(weekday_v_weekend = ifelse(day == "Saturday" | day == "Sunday", "Weekend", "Weekday")) %>% mutate(day = factor(day, levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")), weekday_v_weekend = as.factor(weekday_v_weekend))
+accel_df = read_csv("./data/accel_data.csv") %>% janitor::clean_names() %>% pivot_longer(-c(week, day_id, day), names_to = "minute", values_to = "activity_counts") %>% mutate(minute = as.integer(gsub('[activity_]', '', minute))) %>% mutate(weekday_v_weekend = ifelse(day == "Saturday" | day == "Sunday", "Weekend", "Weekday")) %>% mutate(day = factor(day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")), weekday_v_weekend = as.factor(weekday_v_weekend)) %>% arrange(week, day) %>% group_by(week, day) %>% mutate(day_number = cur_group_id())
 ```
 
-In order to clean the data, we first cleaned the named using `janitor::clean_names()`. We then used `pivot_longer` to tidy the data and create a row for each observation (each minute was given an entry in the newly created `minute` variable). The corresponding activity count values were added to the `activity_counts` variable. We then removed the "activity_" prefix in the `minute` variable to have a integer variable that only contained the numeric values of the minutes. A `weekday_v_weekend` variable was created to distinguish between the types of days. The `day` variable was coerced into a factor variable based on the days of the week, starting with Sunday. The resulting dataset contains `r nrow(accel_df)` observations (one minute for each of the 35 days). The dataset contains the following variables: `week` to represent the week number, `day_id` to represent the day number (ranging from 1 to 35), `day` variable to represent the day of the week, `minute` to represent which minute of the day, `activity_counts` to represent the activity at that specific minute, and `weekday_v_weekend` to represent the type of day. The mean activity count per minute was `r format(mean(accel_df$activity_counts), scientific = F, digits = 6)`. 
+In order to clean the data, the variable names were cleaned using `janitor::clean_names()`. The function `pivot_longer()` was used to tidy the data and create a row for each observation (each minute was given an entry in the newly created `minute` variable). The corresponding activity count values were added to the `activity_counts` variable. The "activity_" prefix in the `minute` variable were removed to have a integer variable that only contained the numeric values of the minutes. A `weekday_v_weekend` variable was created to distinguish between the types of days. The `day` variable was coerced into a factor variable based on the days of the week, starting with Monday. The dataset was then arranged by `week` and `day` order, meaning the first day would be the Monday in week 1 which is followed by the Tuesday in week 1 (this was done as the original dataset did not have the days ordered correctly within each week). A new variable called `day_number` was created to list and number the days in sequential order. The resulting dataset contains `r nrow(accel_df)` observations (one minute for each of the 35 days). The dataset contains the following variables: `week` to represent the week number, `day_id` to represent the day number (ranging from 1 to 35), `day` variable to represent the day of the week, `minute` to represent which minute of the day, `activity_counts` to represent the activity at that specific minute, and `weekday_v_weekend` to represent the type of day. The mean activity count per minute was `r format(mean(accel_df$activity_counts), scientific = F, digits = 6)`. 
 
 #### Total Activity Over the Days
 We will now aggregate across minutes and create a table showing the total activity per day.
 ```{r, message = FALSE}
 total_activity_df = accel_df %>%
-  group_by(day_id, day) %>%
+  group_by(day_number, week, day) %>%
   summarize(total_activity = sum(activity_counts))
 
 total_activity_df %>%
   knitr::kable(digits = 2)
 ```
 
-It can be noted that, according to the table, the man's activity levels were the lowest on the fourth and fifth Saturdays. On these days, his activity count were valued at 1440. These values were much lower than the mean activity level per day, which was approximately `r format(mean(total_activity_df$total_activity), scientific = F, digits = 6)`. In order to study the patterns of activity level each day more effectively, we will create a scatterplot using `day_id` as our x-axis and `total_activity` as our y-axis. We will use `geom_smooth` to estimate a conditional mean to study how the the activity level changes across the 5 weeks.
+It can be noted that, according to the table, the man's activity levels were the lowest on the fourth and fifth Saturdays. On these days, his activity count were valued at 1440. This could indicate some type of reporting error; however, this will need to be investigated further. These values were much lower than the mean activity level per day, which was approximately `r format(mean(total_activity_df$total_activity), scientific = F, digits = 6)`. In order to study the patterns of activity level each day more effectively, a scatterplot using `day_id` as the x-axis and `total_activity` as the y-axis will be created. `geom_smooth` will be used to study how the the activity level changes across the 5 weeks.
 
 ```{r, message = FALSE}
-ggplot(total_activity_df, aes(x = day_id, y = total_activity)) + 
+ggplot(total_activity_df, aes(x = day_number, y = total_activity)) + 
   geom_point(aes(color = day)) +
   geom_smooth(se = FALSE) +  labs(
     title = "Total Activity Plot",
-    x = "Day ID",
+    x = "Day Number",
     y = "Total Activity Per Day",
   )
 ```
-Viewing the plot, it is apparent that the individual was gradually increasing his activity levels until the second week, after which his activity levels decreased. This continued until around the fourth week when his activity levels began to increase again. The plot also confirms that the individual had his lowest activity levels on the fourth and fifth Saturdays.
+Viewing the plot, it is apparent that the individual was gradually increasing his activity levels until the second week, after which his activity levels decreased. This continued until around the third week when it continued to remain stable. It should be noted that there are several outliers, such as the fourth and fifth Saturdays, which have much lower activity levels than the other days. 
 
 #### Activity Over the Course of the Day
 ```{r, message = FALSE}
 accel_hour_df = accel_df %>% 
   mutate(hour = floor(minute/60)) %>% 
-  group_by(hour, day, day_id) %>% 
-  summarize(hourly_total = sum(activity_counts)) %>% arrange(day_id)
+  group_by(hour, day, day_number) %>% 
+  summarize(hourly_total = sum(activity_counts)) %>% arrange(day_number)
 
 accel_hour_plot = ggplot(accel_hour_df, aes(x = hour, y = hourly_total)) + 
   geom_point(aes(color = day)) +
@@ -78,9 +78,6 @@ accel_min_plot + accel_hour_plot
 ```{r}
 library(p8105.datasets)
 data("ny_noaa")
-
-sum(is.na(ny_noaa$date))
-
 ```
 The data contains `r nrow(ny_noaa)` observations. The dataset contains variables such as `id`, `date`, `prcp` to represent the precipitation, `snow` to represent the snowfall, `snwd` to represent the snow depth, `tmax` to represent the maximum temperature, and `tmin` to represent the minimum temperature. The dataset contains observations from `r count(ny_noaa %>% distinct(id))` distinct stations. There are `r sum(is.na(ny_noaa))` missing values in the dataset. `r sum(is.na(ny_noaa$id))` of these are from the `id` variable and `r sum(is.na(ny_noaa$date))` of these are from the `date` variable. From the remaining 5 variables, there should be `r  format(nrow(ny_noaa) * 5, scientific = F, digits = 8)` cells with data if the dataset were fully filled. However, from the 5 key variables with measurements, `r round((sum(is.na(ny_noaa)))/((nrow(ny_noaa)) * 5), 4) * 100`% of the cells contain missing values. This could post a significant issue, as over a quarter of the data from the 5 key variables is missing measurements. However, due to the large size of the dataset, there are still many observations that can be used in the analysis.
 
@@ -95,10 +92,11 @@ In order to clean the data, separate variables for `year`, `month`, an `day` wer
 ```{r, message = FALSE}
 ny_noaa_df_jan_jul = ny_noaa_df %>% filter(month == 1 | month == 7) %>% group_by(id, month, year) %>% drop_na(tmax) %>% summarize(mean_tmax = mean(tmax, na.rm = FALSE))
 
-ggplot(ny_noaa_df_jan_jul, aes(x = year, y = (mean_tmax))) + 
-  geom_point(alpha = .5) +
-  geom_smooth(se = FALSE) + 
-  facet_grid(. ~month)
+ggplot(ny_noaa_df_jan_jul, aes(x = year, y = (mean_tmax), color = id )) + 
+  geom_point() +
+  geom_line() + 
+  facet_grid(. ~month) +   
+  theme(legend.position = "none")
 ```
 # WRITE SUMMARY
 
