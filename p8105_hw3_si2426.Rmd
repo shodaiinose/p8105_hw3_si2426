@@ -68,7 +68,6 @@ accel_min_plot = ggplot(
   accel_df, aes(x = minute, y = activity_counts, group = day_number, color = day)) + 
   geom_point(aes(group = day_number, color = day)) +
   geom_line(aes(group = day_number, color = day)) +
-  geom_smooth(se = FALSE, na.rm = TRUE) +
   labs(
     title = "Activity Over the Course of the Day (Minutes)",
     x = "Minute",
