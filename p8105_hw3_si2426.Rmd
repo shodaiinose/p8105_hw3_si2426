@@ -151,6 +151,7 @@ ggplot(ny_noaa_df_jan_jul, aes(x = year, y = (mean_tmax), color = id )) +
     x = "Year",
     y = "Mean Max Temperature")
 ```
+
 The plots above depict the mean maximum temperature recorded by each station by year in January and July, respectively. Overall, it appears that the mean maximum temperature trends higher in July than in January. Overall, the trend appears steady in July, ranging primarily between 20 and 30 degrees Celsius with exceptions. However, there appears to be a possible slight upwards trend when looking at the January data, especially between 1980 and 1990. The January temperatures appear to range primarily between -10 and 10 degrees Celsius. There are several outliers, such as a very low temperature of around -15 degrees Celsius recorded by one of the stations in January in the 1980s. Another outlier is a low temperature of around 15 degrees Celsius recorded by one of the stations in July in the late 1980s. 
 
 
@@ -176,6 +177,7 @@ noaa_density = ny_noaa_df %>%
 
 tmax_v_tmin + noaa_density
 ```
+
 In the plot comparing maximum temperature to minimum temperature, there appears to be a general positive relationship between the two variables. According to the hex plot, it appears that most values tend to be concentrated where maximum and minimum temperatures are both between 0 and 30 degrees Celsius, In the snowfall density plot, there appears to be a multi-peak distribution of snowfall values. It can also be noted that there appears to be an increased number of low snowfall values in recent years (denoted by the lighter yellow color), indicating that snowfall values might be decreasing in some areas.
 
 
