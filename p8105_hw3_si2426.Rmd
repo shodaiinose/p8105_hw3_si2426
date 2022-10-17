@@ -103,10 +103,16 @@ The plots above depict the man's recorded activity levels throughout the day. Th
 
 ## Problem 3
 
-```{r}
+```{r, include = FALSE}
 library(p8105.datasets)
 data("ny_noaa")
 ```
+
+```{r}
+set.seed(7918)
+sample_n(ny_noaa, 5)
+```
+
 The data contains `r nrow(ny_noaa)` observations. The dataset contains variables such as `id`, `date`, `prcp` to represent the precipitation, `snow` to represent the snowfall, `snwd` to represent the snow depth, `tmax` to represent the maximum temperature, and `tmin` to represent the minimum temperature. The dataset contains observations from `r count(ny_noaa %>% distinct(id))` distinct stations. There are `r sum(is.na(ny_noaa))` missing values in the dataset. `r sum(is.na(ny_noaa$id))` of these are from the `id` variable and `r sum(is.na(ny_noaa$date))` of these are from the `date` variable. From the remaining 5 variables, there should be `r  format(nrow(ny_noaa) * 5, scientific = F, digits = 8)` cells with data if the dataset were fully filled. However, from the 5 key variables with measurements, `r round((sum(is.na(ny_noaa)))/((nrow(ny_noaa)) * 5), 4) * 100`% of the cells contain missing values. This could post a significant issue, as over a quarter of the data from the 5 key variables is missing measurements. However, due to the large size of the dataset, there are still many observations that can be used in the analysis.
 
 ```{r}
